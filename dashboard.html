@@ -3,377 +3,469 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 Multi-Coin Trading Bot</title>
+    <title>🚀 Trading Bot Pro Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0a0a15 0%, #1a1a2e 100%);
+            background: linear-gradient(135deg, #0a0a15 0%, #1a1a2e 50%, #0d1117 100%);
             color: #e0e0e0;
             min-height: 100vh;
             padding: 15px;
         }
-        .container { max-width: 1600px; margin: 0 auto; }
+        .container { max-width: 1800px; margin: 0 auto; }
         
         header {
             text-align: center;
             padding: 20px;
-            background: rgba(255,255,255,0.03);
+            background: rgba(255,255,255,0.02);
             border-radius: 15px;
             margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        header h1 { font-size: 2em; margin-bottom: 5px; }
-        .subtitle { color: #8892b0; }
+        header h1 { font-size: 2.2em; background: linear-gradient(90deg, #00b894, #0984e3, #6c5ce7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: #8892b0; margin-top: 5px; }
         
-        .badges {
-            display: flex;
-            justify-content: center;
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
-            margin: 15px 0;
+            margin-bottom: 20px;
         }
-        .badge {
-            padding: 8px 20px;
-            border-radius: 25px;
-            font-weight: 600;
-        }
-        .badge.live { background: linear-gradient(135deg, #00b894, #00cec9); }
-        
-        .stats-bar {
-            display: flex;
-            justify-content: space-around;
+        .summary-card {
             background: rgba(255,255,255,0.03);
-            border-radius: 15px;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .summary-card .value { font-size: 2em; font-weight: 700; }
+        .summary-card .label { font-size: 0.75em; color: #8892b0; margin-top: 5px; }
+        .positive { color: #00b894; }
+        .negative { color: #ff6b6b; }
+        .warning { color: #fdcb6e; }
+        .info { color: #74b9ff; }
+        
+        .top-signals {
+            background: rgba(0,184,148,0.1);
+            border: 1px solid rgba(0,184,148,0.3);
+            border-radius: 12px;
             padding: 15px;
             margin-bottom: 20px;
-            flex-wrap: wrap;
         }
-        .stat-item { text-align: center; padding: 10px; }
-        .stat-value { font-size: 1.8em; font-weight: 700; }
-        .stat-label { font-size: 0.8em; color: #8892b0; }
-        
-        .coins-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 15px;
-        }
-        
-        .coin-card {
-            background: rgba(255,255,255,0.04);
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.08);
-            transition: all 0.3s;
-        }
-        .coin-card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(0,184,148,0.3);
-        }
-        .coin-card.buy-signal {
-            border: 2px solid #00b894;
-            box-shadow: 0 0 20px rgba(0,184,148,0.3);
-        }
-        .coin-card.sell-signal {
-            border: 2px solid #ff6b6b;
-            box-shadow: 0 0 20px rgba(255,107,107,0.3);
-        }
-        .coin-card.in-position {
-            background: rgba(253,203,110,0.1);
-            border: 1px solid #fdcb6e;
-        }
-        
-        .coin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .coin-name {
-            font-size: 1.3em;
-            font-weight: 700;
-        }
-        .coin-price {
-            font-size: 1.1em;
-            color: #00cec9;
-        }
-        
-        .signal-badge {
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.8em;
+        .top-signals h3 { color: #00b894; margin-bottom: 10px; }
+        .signal-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+        .signal-chip {
+            background: rgba(0,184,148,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
             font-weight: 600;
         }
-        .signal-badge.buy { background: #00b894; color: #fff; }
-        .signal-badge.sell { background: #ff6b6b; color: #fff; }
-        .signal-badge.wait { background: #636e72; color: #fff; }
         
-        .indicators {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .indicator {
-            background: rgba(255,255,255,0.03);
-            border-radius: 8px;
-            padding: 10px;
-        }
-        .indicator-label { font-size: 0.75em; color: #8892b0; }
-        .indicator-value { font-size: 1.1em; font-weight: 600; }
-        
-        .score-bar {
-            margin: 15px 0;
-            background: rgba(255,255,255,0.1);
-            border-radius: 8px;
-            height: 20px;
+        .coins-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+            border-radius: 15px;
             overflow: hidden;
+            margin-bottom: 20px;
         }
-        .score-fill {
-            height: 100%;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .coins-table th {
+            background: rgba(255,255,255,0.05);
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 0.75em;
+            color: #8892b0;
+            text-transform: uppercase;
+            position: sticky;
+            top: 0;
+        }
+        .coins-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 0.85em;
+        }
+        .coins-table tr:hover { background: rgba(255,255,255,0.03); }
+        .coins-table tr.buy-row { background: rgba(0,184,148,0.1); }
+        .coins-table tr.sell-row { background: rgba(255,107,107,0.1); }
+        .coins-table tr.position-row { background: rgba(253,203,110,0.1); }
+        
+        .signal-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
             font-size: 0.75em;
             font-weight: 600;
         }
+        .signal-badge.strong-buy { background: #00b894; color: #fff; }
+        .signal-badge.buy { background: rgba(0,184,148,0.3); color: #00b894; }
+        .signal-badge.strong-sell { background: #ff6b6b; color: #fff; }
+        .signal-badge.sell { background: rgba(255,107,107,0.3); color: #ff6b6b; }
+        .signal-badge.neutral { background: rgba(99,110,114,0.3); color: #b2bec3; }
         
-        .position-info {
-            margin-top: 15px;
-            padding: 12px;
-            background: rgba(253,203,110,0.1);
-            border-radius: 10px;
-            border: 1px solid rgba(253,203,110,0.3);
+        .indicator-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            width: 60px;
+            display: inline-block;
         }
-        .position-row {
+        .indicator-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+        
+        .detail-panel {
+            position: fixed;
+            right: -450px;
+            top: 0;
+            width: 450px;
+            height: 100vh;
+            background: #1a1a2e;
+            border-left: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            overflow-y: auto;
+            transition: right 0.3s;
+            z-index: 1000;
+        }
+        .detail-panel.open { right: 0; }
+        .detail-panel .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        
+        .detail-header { margin-bottom: 20px; }
+        .detail-header h2 { font-size: 1.8em; }
+        .detail-header .price { font-size: 1.5em; color: #00cec9; }
+        
+        .detail-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .detail-section h4 { color: #8892b0; font-size: 0.85em; margin-bottom: 10px; text-transform: uppercase; }
+        
+        .detail-row {
             display: flex;
             justify-content: space-between;
-            padding: 5px 0;
-            font-size: 0.9em;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
         }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: #8892b0; font-size: 0.9em; }
+        .detail-value { font-weight: 600; }
         
-        .positive { color: #00b894; }
-        .negative { color: #ff6b6b; }
-        .neutral { color: #fdcb6e; }
+        .mini-chart {
+            height: 80px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            margin: 10px 0;
+        }
+        .mini-bar {
+            flex: 1;
+            border-radius: 2px 2px 0 0;
+            min-height: 3px;
+            transition: height 0.3s;
+        }
+        .mini-bar.up { background: linear-gradient(to top, #00b894, #00cec9); }
+        .mini-bar.down { background: linear-gradient(to top, #ff6b6b, #e17055); }
+        
+        .signals-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        .signal-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            font-size: 0.85em;
+        }
+        .signal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .signal-dot.active { background: #00b894; }
+        .signal-dot.inactive { background: #636e72; }
         
         .refresh-bar {
             text-align: center;
             color: #8892b0;
             font-size: 0.8em;
-            margin-top: 20px;
-            padding: 10px;
-            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            background: rgba(255,255,255,0.02);
             border-radius: 10px;
+            margin-top: 20px;
         }
         
-        .dot { animation: pulse 1.5s infinite; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; background: #00b894; }
+        .dot { animation: pulse 1.5s infinite; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #00b894; margin-right: 5px; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         
-        .sort-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+        @media (max-width: 1200px) {
+            .coins-table { font-size: 0.85em; }
+            .detail-panel { width: 100%; right: -100%; }
         }
-        .sort-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            cursor: pointer;
-            font-size: 0.85em;
-        }
-        .sort-btn:hover { background: rgba(255,255,255,0.2); }
-        .sort-btn.active { background: #00b894; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🚀 Multi-Coin Trading Bot</h1>
-            <div class="subtitle">Monitoraggio 10 crypto in tempo reale</div>
+            <h1>🚀 Trading Bot Pro Dashboard</h1>
+            <div class="subtitle">Multi-Coin • 15 Crypto • Analisi Tecnica Avanzata</div>
         </header>
         
-        <div class="badges">
-            <span class="badge live"><span class="dot"></span>LIVE TRADING</span>
+        <div class="summary-grid" id="summaryGrid">
+            <!-- Populated by JS -->
         </div>
         
-        <div class="stats-bar" id="statsBar">
-            <div class="stat-item">
-                <div class="stat-value" id="totalCoins">10</div>
-                <div class="stat-label">Crypto Monitorate</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value positive" id="buySignals">0</div>
-                <div class="stat-label">Segnali BUY</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="activePositions">0</div>
-                <div class="stat-label">Posizioni Attive</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="totalPnl">$0.00</div>
-                <div class="stat-label">PnL Totale</div>
-            </div>
+        <div class="top-signals" id="topSignals">
+            <h3>🎯 Top Opportunità</h3>
+            <div class="signal-chips" id="signalChips"></div>
         </div>
         
-        <div class="sort-buttons">
-            <button class="sort-btn active" onclick="sortCoins('score')">📊 Per Score</button>
-            <button class="sort-btn" onclick="sortCoins('pnl')">💰 Per PnL</button>
-            <button class="sort-btn" onclick="sortCoins('name')">🔤 Per Nome</button>
-            <button class="sort-btn" onclick="sortCoins('position')">📍 Solo Posizioni</button>
-        </div>
-        
-        <div class="coins-grid" id="coinsGrid"></div>
+        <table class="coins-table">
+            <thead>
+                <tr>
+                    <th>Pair</th>
+                    <th>Prezzo</th>
+                    <th>24h</th>
+                    <th>Segnale</th>
+                    <th>Score</th>
+                    <th>RSI</th>
+                    <th>MACD</th>
+                    <th>Stoch</th>
+                    <th>EMA</th>
+                    <th>BB</th>
+                    <th>ATR%</th>
+                    <th>ADX</th>
+                    <th>Volume</th>
+                    <th>Posizione</th>
+                    <th>PnL</th>
+                </tr>
+            </thead>
+            <tbody id="coinsBody"></tbody>
+        </table>
         
         <div class="refresh-bar">
-            <span class="dot"></span> Aggiornamento: ogni 60s | Ultimo: <span id="lastUpdate">--</span>
+            <span class="dot"></span> Live | Aggiornamento: ogni 45s | Ultimo: <span id="lastUpdate">--</span>
         </div>
     </div>
     
+    <div class="detail-panel" id="detailPanel">
+        <button class="close-btn" onclick="closeDetail()">×</button>
+        <div id="detailContent"></div>
+    </div>
+    
     <script>
-        let coinsData = {};
+        let data = {};
+        let selectedCoin = null;
         
         async function fetchData() {
             try {
                 const res = await fetch('/multi_status.json?' + Date.now());
                 if (res.ok) {
-                    coinsData = await res.json();
+                    data = await res.json();
                     updateUI();
                 }
-            } catch (e) {
-                console.error('Errore:', e);
-            }
+            } catch (e) { console.error('Errore:', e); }
         }
         
         function updateUI() {
-            if (!coinsData || !coinsData.coins) return;
+            if (!data.coins) return;
             
-            const coins = coinsData.coins;
-            const coinKeys = Object.keys(coins);
+            // Summary
+            const s = data.summary;
+            document.getElementById('summaryGrid').innerHTML = `
+                <div class="summary-card"><div class="value info">${s.total_coins}</div><div class="label">Crypto Monitorate</div></div>
+                <div class="summary-card"><div class="value positive">${s.buy_signals}</div><div class="label">Segnali BUY</div></div>
+                <div class="summary-card"><div class="value negative">${s.sell_signals}</div><div class="label">Segnali SELL</div></div>
+                <div class="summary-card"><div class="value warning">${s.active_positions}</div><div class="label">Posizioni Attive</div></div>
+                <div class="summary-card"><div class="value">${s.total_trades}</div><div class="label">Trade Totali</div></div>
+                <div class="summary-card"><div class="value positive">${s.win_rate}%</div><div class="label">Win Rate</div></div>
+                <div class="summary-card"><div class="value ${s.total_pnl >= 0 ? 'positive' : 'negative'}">${s.total_pnl >= 0 ? '+' : ''}$${Math.abs(s.total_pnl).toFixed(2)}</div><div class="label">PnL Totale</div></div>
+            `;
             
-            // Stats bar
-            let buyCount = 0, posCount = 0, totalPnl = 0;
-            coinKeys.forEach(key => {
-                if (coins[key].signal === 'BUY') buyCount++;
-                if (coins[key].in_position) posCount++;
-                totalPnl += coins[key].total_pnl || 0;
-            });
+            // Top signals
+            const chips = s.top_buys?.map(t => `<div class="signal-chip">${t.symbol.replace('USDT','')} (${t.score}/7)</div>`).join('') || '<span style="color:#8892b0">Nessun segnale forte al momento</span>';
+            document.getElementById('signalChips').innerHTML = chips;
             
-            document.getElementById('totalCoins').textContent = coinKeys.length;
-            document.getElementById('buySignals').textContent = buyCount;
-            document.getElementById('activePositions').textContent = posCount;
+            // Coins table
+            const coins = Object.entries(data.coins);
+            document.getElementById('coinsBody').innerHTML = coins.map(([symbol, c]) => {
+                const name = symbol.replace('USDT','');
+                const rowClass = c.signal.includes('BUY') ? 'buy-row' : (c.signal.includes('SELL') ? 'sell-row' : (c.position.active ? 'position-row' : ''));
+                const signalClass = c.signal.toLowerCase().replace('_', '-');
+                const scoreColor = c.buy_score >= 5 ? '#00b894' : (c.buy_score >= 3 ? '#fdcb6e' : '#ff6b6b');
+                
+                return `
+                <tr class="${rowClass}" onclick="showDetail('${symbol}')" style="cursor:pointer">
+                    <td><strong>${name}</strong></td>
+                    <td>$${c.price?.toLocaleString()}</td>
+                    <td class="${c.price_data.change_5 >= 0 ? 'positive' : 'negative'}">${c.price_data.change_5 >= 0 ? '+' : ''}${c.price_data.change_5}%</td>
+                    <td><span class="signal-badge ${signalClass}">${c.signal}</span></td>
+                    <td><div class="indicator-bar"><div class="indicator-bar-fill" style="width:${(c.buy_score/7)*100}%;background:${scoreColor}"></div></div> ${c.buy_score}/7</td>
+                    <td style="color:${c.indicators.rsi < 40 ? '#00b894' : (c.indicators.rsi > 65 ? '#ff6b6b' : '#fdcb6e')}">${c.indicators.rsi}</td>
+                    <td style="color:${c.indicators.macd_hist > 0 ? '#00b894' : '#ff6b6b'}">${c.indicators.macd_hist.toFixed(2)}</td>
+                    <td>${c.indicators.stoch_k.toFixed(0)}</td>
+                    <td style="color:${c.indicators.ema_fast > c.indicators.ema_slow ? '#00b894' : '#ff6b6b'}">${c.indicators.ema_fast > c.indicators.ema_slow ? '↑' : '↓'}</td>
+                    <td>${c.indicators.bb_width.toFixed(2)}%</td>
+                    <td>${c.indicators.atr_pct}%</td>
+                    <td style="color:${c.indicators.adx > 25 ? '#00b894' : '#8892b0'}">${c.indicators.adx.toFixed(0)}</td>
+                    <td>${c.volume.spike ? '🔥' : ''} ${c.volume.ratio}x</td>
+                    <td>${c.position.active ? '📍' : '-'}</td>
+                    <td class="${c.position.unrealized_pnl >= 0 ? 'positive' : 'negative'}">${c.position.active ? (c.position.unrealized_pnl >= 0 ? '+' : '') + '$' + c.position.unrealized_pnl.toFixed(2) : '-'}</td>
+                </tr>`;
+            }).join('');
             
-            const pnlEl = document.getElementById('totalPnl');
-            pnlEl.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2);
-            pnlEl.className = 'stat-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
-            
-            // Coins grid
-            const grid = document.getElementById('coinsGrid');
-            grid.innerHTML = coinKeys.map(key => createCoinCard(key, coins[key])).join('');
-            
-            // Timestamp
-            document.getElementById('lastUpdate').textContent = coinsData.timestamp;
+            document.getElementById('lastUpdate').textContent = data.timestamp;
         }
         
-        function createCoinCard(symbol, data) {
-            const coinName = symbol.replace('USDT', '');
-            const cardClass = data.signal === 'BUY' ? 'buy-signal' : 
-                             (data.signal === 'SELL' ? 'sell-signal' : 
-                             (data.in_position ? 'in-position' : ''));
+        function showDetail(symbol) {
+            selectedCoin = symbol;
+            const c = data.coins[symbol];
+            const panel = document.getElementById('detailPanel');
+            const content = document.getElementById('detailContent');
             
-            const signalClass = data.signal === 'BUY' ? 'buy' : 
-                               (data.signal.includes('SELL') ? 'sell' : 'wait');
-            
-            const signalText = data.signal === 'BUY' ? '🟢 BUY' : 
-                              (data.signal.includes('SELL') ? '🔴 SELL' : '⚪ ATTESA');
-            
-            const scoreColor = data.buy_score_pct >= 75 ? '#00b894' : 
-                              (data.buy_score_pct >= 50 ? '#fdcb6e' : '#ff6b6b');
-            
-            return `
-                <div class="coin-card ${cardClass}">
-                    <div class="coin-header">
-                        <div>
-                            <div class="coin-name">${coinName}</div>
-                            <div class="coin-price">$${data.price?.toLocaleString() || '--'}</div>
-                        </div>
-                        <span class="signal-badge ${signalClass}">${signalText}</span>
-                    </div>
-                    
-                    <div class="score-bar">
-                        <div class="score-fill" style="width: ${data.buy_score_pct}%; background: ${scoreColor};">
-                            ${data.buy_score}/4 (${data.buy_score_pct}%)
-                        </div>
-                    </div>
-                    
-                    <div class="indicators">
-                        <div class="indicator">
-                            <div class="indicator-label">RSI</div>
-                            <div class="indicator-value" style="color: ${data.rsi < 40 ? '#00b894' : (data.rsi > 65 ? '#ff6b6b' : '#fdcb6e')}">${data.rsi}</div>
-                        </div>
-                        <div class="indicator">
-                            <div class="indicator-label">MACD</div>
-                            <div class="indicator-value" style="color: ${data.macd > 0 ? '#00b894' : '#ff6b6b'}">${data.macd?.toFixed(1)}</div>
-                        </div>
-                        <div class="indicator">
-                            <div class="indicator-label">EMA Trend</div>
-                            <div class="indicator-value" style="color: ${data.ema_short > data.ema_long ? '#00b894' : '#ff6b6b'}">
-                                ${data.ema_short > data.ema_long ? '📈 Bullish' : '📉 Bearish'}
-                            </div>
-                        </div>
-                        <div class="indicator">
-                            <div class="indicator-label">Volume</div>
-                            <div class="indicator-value">${data.volume_spike ? '🔥 Spike!' : '➡️ Normale'}</div>
-                        </div>
-                    </div>
-                    
-                    ${data.in_position ? `
-                        <div class="position-info">
-                            <div style="font-weight: 600; margin-bottom: 8px;">📍 Posizione Aperta</div>
-                            <div class="position-row">
-                                <span>Entry:</span>
-                                <span>$${data.entry_price?.toLocaleString()}</span>
-                            </div>
-                            <div class="position-row">
-                                <span>Quantità:</span>
-                                <span>${data.quantity?.toFixed(6)} ${coinName}</span>
-                            </div>
-                            <div class="position-row">
-                                <span>PnL:</span>
-                                <span class="${data.unrealized_pnl >= 0 ? 'positive' : 'negative'}">
-                                    ${data.unrealized_pnl >= 0 ? '+' : ''}$${data.unrealized_pnl?.toFixed(4)}
-                                </span>
-                            </div>
-                            <div class="position-row">
-                                <span>TP:</span>
-                                <span class="positive">$${data.tp_price?.toLocaleString()}</span>
-                            </div>
-                            <div class="position-row">
-                                <span>SL:</span>
-                                <span class="negative">$${data.sl_price?.toLocaleString()}</span>
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    <div style="margin-top: 10px; font-size: 0.8em; color: #8892b0;">
-                        Trade: ${data.total_trades} | Win: ${data.win_rate}% | PnL: 
-                        <span class="${data.total_pnl >= 0 ? 'positive' : 'negative'}">
-                            ${data.total_pnl >= 0 ? '+' : ''}$${data.total_pnl?.toFixed(4)}
-                        </span>
+            content.innerHTML = `
+                <div class="detail-header">
+                    <h2>${symbol.replace('USDT','/USDT')}</h2>
+                    <div class="price">$${c.price?.toLocaleString()}</div>
+                    <span class="signal-badge ${c.signal.toLowerCase().replace('_','-')}" style="margin-top:10px;display:inline-block">${c.signal}</span>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>📊 Indicatori Tecnici</h4>
+                    <div class="detail-row"><span class="detail-label">RSI (14)</span><span class="detail-value" style="color:${c.indicators.rsi < 40 ? '#00b894' : (c.indicators.rsi > 65 ? '#ff6b6b' : '#fdcb6e')}">${c.indicators.rsi} ${c.indicators.rsi < 40 ? '(Oversold)' : (c.indicators.rsi > 65 ? '(Overbought)' : '')}</span></div>
+                    <div class="detail-row"><span class="detail-label">RSI SMA</span><span class="detail-value">${c.indicators.rsi_sma}</span></div>
+                    <div class="detail-row"><span class="detail-label">MACD</span><span class="detail-value" style="color:${c.indicators.macd_hist > 0 ? '#00b894' : '#ff6b6b'}">${c.indicators.macd.toFixed(3)}</span></div>
+                    <div class="detail-row"><span class="detail-label">MACD Signal</span><span class="detail-value">${c.indicators.macd_signal.toFixed(3)}</span></div>
+                    <div class="detail-row"><span class="detail-label">MACD Histogram</span><span class="detail-value" style="color:${c.indicators.macd_hist > 0 ? '#00b894' : '#ff6b6b'}">${c.indicators.macd_hist.toFixed(4)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Stochastic K</span><span class="detail-value" style="color:${c.indicators.stoch_k < 20 ? '#00b894' : (c.indicators.stoch_k > 80 ? '#ff6b6b' : '#fdcb6e')}">${c.indicators.stoch_k}</span></div>
+                    <div class="detail-row"><span class="detail-label">Stochastic D</span><span class="detail-value">${c.indicators.stoch_d}</span></div>
+                    <div class="detail-row"><span class="detail-label">ADX</span><span class="detail-value" style="color:${c.indicators.adx > 25 ? '#00b894' : '#8892b0'}">${c.indicators.adx} ${c.indicators.adx > 25 ? '(Trend forte)' : '(Trend debole)'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Momentum</span><span class="detail-value" style="color:${c.indicators.momentum > 0 ? '#00b894' : '#ff6b6b'}">${c.indicators.momentum.toFixed(4)}</span></div>
+                    <div class="detail-row"><span class="detail-label">ROC</span><span class="detail-value" style="color:${c.indicators.roc > 0 ? '#00b894' : '#ff6b6b'}">${c.indicators.roc}%</span></div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>📈 EMA Analysis</h4>
+                    <div class="detail-row"><span class="detail-label">EMA Fast (9)</span><span class="detail-value">$${c.indicators.ema_fast.toLocaleString()}</span></div>
+                    <div class="detail-row"><span class="detail-label">EMA Mid (21)</span><span class="detail-value">$${c.indicators.ema_mid.toLocaleString()}</span></div>
+                    <div class="detail-row"><span class="detail-label">EMA Slow (50)</span><span class="detail-value">$${c.indicators.ema_slow.toLocaleString()}</span></div>
+                    <div class="detail-row"><span class="detail-label">Trend</span><span class="detail-value" style="color:${c.indicators.ema_fast > c.indicators.ema_slow ? '#00b894' : '#ff6b6b'}">${c.signals.ema_bullish ? '🟢 RIALZISTA' : (c.signals.ema_bearish ? '🔴 RIBASSISTA' : '⚪ NEUTRO')}</span></div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>📊 Bollinger Bands</h4>
+                    <div class="detail-row"><span class="detail-label">Upper Band</span><span class="detail-value">$${c.indicators.bb_upper.toLocaleString()}</span></div>
+                    <div class="detail-row"><span class="detail-label">Middle Band</span><span class="detail-value">$${c.indicators.bb_mid.toLocaleString()}</span></div>
+                    <div class="detail-row"><span class="detail-label">Lower Band</span><span class="detail-value">$${c.indicators.bb_lower.toLocaleString()}</span></div>
+                    <div class="detail-row"><span class="detail-label">Band Width</span><span class="detail-value">${c.indicators.bb_width}%</span></div>
+                    <div class="detail-row"><span class="detail-label">Position</span><span class="detail-value">${c.price > c.indicators.bb_upper ? '⬆️ Above Upper' : (c.price < c.indicators.bb_lower ? '⬇️ Below Lower' : '↔️ Inside')}</span></div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>📉 Volatilità & ATR</h4>
+                    <div class="detail-row"><span class="detail-label">ATR</span><span class="detail-value">${c.indicators.atr}</span></div>
+                    <div class="detail-row"><span class="detail-label">ATR %</span><span class="detail-value" style="color:${c.indicators.atr_pct > 2 ? '#fdcb6e' : '#8892b0'}">${c.indicators.atr_pct}% ${c.indicators.atr_pct > 2 ? '(Alta)' : ''}</span></div>
+                    <div class="detail-row"><span class="detail-label">High/Low Range</span><span class="detail-value">${c.price_data.volatility}%</span></div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>📊 Volume Analysis</h4>
+                    <div class="detail-row"><span class="detail-label">Current Volume</span><span class="detail-value">${c.volume.current}</span></div>
+                    <div class="detail-row"><span class="detail-label">Avg (5 periods)</span><span class="detail-value">${c.volume.avg_5}</span></div>
+                    <div class="detail-row"><span class="detail-label">Avg (20 periods)</span><span class="detail-value">${c.volume.avg_20}</span></div>
+                    <div class="detail-row"><span class="detail-label">Volume Ratio</span><span class="detail-value" style="color:${c.volume.spike ? '#00b894' : '#8892b0'}">${c.volume.ratio}x ${c.volume.spike ? '🔥 SPIKE!' : ''}</span></div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>🎯 Support & Resistance</h4>
+                    <div class="detail-row"><span class="detail-label">Resistance 1</span><span class="detail-value positive">$${c.levels.resistance1.toLocaleString()}</span></div>
+                    <div class="detail-row"><span class="detail-label">Pivot</span><span class="detail-value">$${c.levels.pivot.toLocaleString()}</span></div>
+                    <div class="detail-row"><span class="detail-label">Support 1</span><span class="detail-value negative">$${c.levels.support1.toLocaleString()}</span></div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>📜 Segnali</h4>
+                    <div class="signals-grid">
+                        <div class="signal-item"><span class="signal-dot ${c.signals.rsi_buy ? 'active' : 'inactive'}"></span> RSI Buy</div>
+                        <div class="signal-item"><span class="signal-dot ${c.signals.rsi_sell ? 'active' : 'inactive'}"></span> RSI Sell</div>
+                        <div class="signal-item"><span class="signal-dot ${c.signals.macd_bullish ? 'active' : 'inactive'}"></span> MACD Bullish</div>
+                        <div class="signal-item"><span class="signal-dot ${c.signals.macd_cross_up ? 'active' : 'inactive'}"></span> MACD Cross Up</div>
+                        <div class="signal-item"><span class="signal-dot ${c.signals.ema_bullish ? 'active' : 'inactive'}"></span> EMA Bullish</div>
+                        <div class="signal-item"><span class="signal-dot ${c.signals.stoch_oversold ? 'active' : 'inactive'}"></span> Stoch Oversold</div>
+                        <div class="signal-item"><span class="signal-dot ${c.signals.bb_lower_touch ? 'active' : 'inactive'}"></span> BB Lower Touch</div>
+                        <div class="signal-item"><span class="signal-dot ${c.signals.volume_spike ? 'active' : 'inactive'}"></span> Volume Spike</div>
                     </div>
                 </div>
+                
+                ${c.position.active ? `
+                <div class="detail-section" style="border: 1px solid #fdcb6e;">
+                    <h4>📍 Posizione Aperta</h4>
+                    <div class="detail-row"><span class="detail-label">Entry Price</span><span class="detail-value">$${c.position.entry_price.toLocaleString()}</span></div>
+                    <div class="detail-row"><span class="detail-label">Quantity</span><span class="detail-value">${c.position.quantity.toFixed(6)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Current Value</span><span class="detail-value">$${c.position.current_value.toFixed(2)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Unrealized PnL</span><span class="detail-value ${c.position.unrealized_pnl >= 0 ? 'positive' : 'negative'}">${c.position.unrealized_pnl >= 0 ? '+' : ''}$${c.position.unrealized_pnl.toFixed(4)} (${c.position.unrealized_pnl_pct}%)</span></div>
+                    <div class="detail-row"><span class="detail-label">Take Profit</span><span class="detail-value positive">$${c.position.tp_price.toLocaleString()} (${c.position.distance_to_tp}%)</span></div>
+                    <div class="detail-row"><span class="detail-label">Stop Loss</span><span class="detail-value negative">$${c.position.sl_price.toLocaleString()} (${c.position.distance_to_sl}%)</span></div>
+                    <div class="detail-row"><span class="detail-label">Trailing SL</span><span class="detail-value warning">$${c.position.trailing_sl.toLocaleString()}</span></div>
+                    <div class="detail-row"><span class="detail-label">Highest Price</span><span class="detail-value">$${c.position.highest_price.toLocaleString()}</span></div>
+                </div>
+                ` : ''}
+                
+                <div class="detail-section">
+                    <h4>📈 Statistiche Trade</h4>
+                    <div class="detail-row"><span class="detail-label">Total Trades</span><span class="detail-value">${c.stats.total_trades}</span></div>
+                    <div class="detail-row"><span class="detail-label">Wins / Losses</span><span class="detail-value"><span class="positive">${c.stats.wins}</span> / <span class="negative">${c.stats.losses}</span></span></div>
+                    <div class="detail-row"><span class="detail-label">Win Rate</span><span class="detail-value" style="color:${c.stats.win_rate >= 50 ? '#00b894' : '#ff6b6b'}">${c.stats.win_rate}%</span></div>
+                    <div class="detail-row"><span class="detail-label">Total PnL</span><span class="detail-value ${c.stats.total_pnl >= 0 ? 'positive' : 'negative'}">${c.stats.total_pnl >= 0 ? '+' : ''}$${c.stats.total_pnl.toFixed(4)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Best Trade</span><span class="detail-value positive">+$${c.stats.best_trade.toFixed(4)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Worst Trade</span><span class="detail-value negative">-$${Math.abs(c.stats.worst_trade).toFixed(4)}</span></div>
+                </div>
+                
+                ${c.price_history?.length > 0 ? `
+                <div class="detail-section">
+                    <h4>📉 Price History (ultimi ${c.price_history.length} punti)</h4>
+                    <div class="mini-chart">
+                        ${c.price_history.map((p, i) => {
+                            const min = Math.min(...c.price_history.map(x => x.price));
+                            const max = Math.max(...c.price_history.map(x => x.price));
+                            const range = max - min || 1;
+                            const height = ((p.price - min) / range) * 100;
+                            const isUp = i > 0 && p.price >= c.price_history[i-1].price;
+                            return `<div class="mini-bar ${isUp ? 'up' : 'down'}" style="height: ${Math.max(5, height)}%"></div>`;
+                        }).join('')}
+                    </div>
+                </div>
+                ` : ''}
             `;
+            
+            panel.classList.add('open');
         }
         
-        function sortCoins(by) {
-            document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            updateUI();
+        function closeDetail() {
+            document.getElementById('detailPanel').classList.remove('open');
+            selectedCoin = null;
         }
+        
+        // Close panel on ESC
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
         
         fetchData();
-        setInterval(fetchData, 15000); // Aggiorna ogni 15 secondi
+        setInterval(fetchData, 15000);
     </script>
 </body>
 </html>

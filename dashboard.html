@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Multi-Coin Trading Bot</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a15 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        header h1 { font-size: 2em; margin-bottom: 5px; }
+        .subtitle { color: #8892b0; }
+        
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .badge {
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+        }
+        .badge.live { background: linear-gradient(135deg, #00b894, #00cec9); }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-item { text-align: center; padding: 10px; }
+        .stat-value { font-size: 1.8em; font-weight: 700; }
+        .stat-label { font-size: 0.8em; color: #8892b0; }
+        
+        .coins-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 15px;
+        }
+        
+        .coin-card {
+            background: rgba(255,255,255,0.04);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s;
+        }
+        .coin-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(0,184,148,0.3);
+        }
+        .coin-card.buy-signal {
+            border: 2px solid #00b894;
+            box-shadow: 0 0 20px rgba(0,184,148,0.3);
+        }
+        .coin-card.sell-signal {
+            border: 2px solid #ff6b6b;
+            box-shadow: 0 0 20px rgba(255,107,107,0.3);
+        }
+        .coin-card.in-position {
+            background: rgba(253,203,110,0.1);
+            border: 1px solid #fdcb6e;
+        }
+        
+        .coin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .coin-name {
+            font-size: 1.3em;
+            font-weight: 700;
+        }
+        .coin-price {
+            font-size: 1.1em;
+            color: #00cec9;
+        }
+        
+        .signal-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        .signal-badge.buy { background: #00b894; color: #fff; }
+        .signal-badge.sell { background: #ff6b6b; color: #fff; }
+        .signal-badge.wait { background: #636e72; color: #fff; }
+        
+        .indicators {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .indicator {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .indicator-label { font-size: 0.75em; color: #8892b0; }
+        .indicator-value { font-size: 1.1em; font-weight: 600; }
+        
+        .score-bar {
+            margin: 15px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            height: 20px;
+            overflow: hidden;
+        }
+        .score-fill {
+            height: 100%;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+        
+        .position-info {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(253,203,110,0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(253,203,110,0.3);
+        }
+        .position-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 0.9em;
+        }
+        
+        .positive { color: #00b894; }
+        .negative { color: #ff6b6b; }
+        .neutral { color: #fdcb6e; }
+        
+        .refresh-bar {
+            text-align: center;
+            color: #8892b0;
+            font-size: 0.8em;
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+        }
+        
+        .dot { animation: pulse 1.5s infinite; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; background: #00b894; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .sort-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .sort-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        .sort-btn:hover { background: rgba(255,255,255,0.2); }
+        .sort-btn.active { background: #00b894; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Multi-Coin Trading Bot</h1>
+            <div class="subtitle">Monitoraggio 10 crypto in tempo reale</div>
+        </header>
+        
+        <div class="badges">
+            <span class="badge live"><span class="dot"></span>LIVE TRADING</span>
+        </div>
+        
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item">
+                <div class="stat-value" id="totalCoins">10</div>
+                <div class="stat-label">Crypto Monitorate</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value positive" id="buySignals">0</div>
+                <div class="stat-label">Segnali BUY</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="activePositions">0</div>
+                <div class="stat-label">Posizioni Attive</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalPnl">$0.00</div>
+                <div class="stat-label">PnL Totale</div>
+            </div>
+        </div>
+        
+        <div class="sort-buttons">
+            <button class="sort-btn active" onclick="sortCoins('score')">📊 Per Score</button>
+            <button class="sort-btn" onclick="sortCoins('pnl')">💰 Per PnL</button>
+            <button class="sort-btn" onclick="sortCoins('name')">🔤 Per Nome</button>
+            <button class="sort-btn" onclick="sortCoins('position')">📍 Solo Posizioni</button>
+        </div>
+        
+        <div class="coins-grid" id="coinsGrid"></div>
+        
+        <div class="refresh-bar">
+            <span class="dot"></span> Aggiornamento: ogni 60s | Ultimo: <span id="lastUpdate">--</span>
+        </div>
+    </div>
+    
+    <script>
+        let coinsData = {};
+        
+        async function fetchData() {
+            try {
+                const res = await fetch('/multi_status.json?' + Date.now());
+                if (res.ok) {
+                    coinsData = await res.json();
+                    updateUI();
+                }
+            } catch (e) {
+                console.error('Errore:', e);
+            }
+        }
+        
+        function updateUI() {
+            if (!coinsData || !coinsData.coins) return;
+            
+            const coins = coinsData.coins;
+            const coinKeys = Object.keys(coins);
+            
+            // Stats bar
+            let buyCount = 0, posCount = 0, totalPnl = 0;
+            coinKeys.forEach(key => {
+                if (coins[key].signal === 'BUY') buyCount++;
+                if (coins[key].in_position) posCount++;
+                totalPnl += coins[key].total_pnl || 0;
+            });
+            
+            document.getElementById('totalCoins').textContent = coinKeys.length;
+            document.getElementById('buySignals').textContent = buyCount;
+            document.getElementById('activePositions').textContent = posCount;
+            
+            const pnlEl = document.getElementById('totalPnl');
+            pnlEl.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2);
+            pnlEl.className = 'stat-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
+            
+            // Coins grid
+            const grid = document.getElementById('coinsGrid');
+            grid.innerHTML = coinKeys.map(key => createCoinCard(key, coins[key])).join('');
+            
+            // Timestamp
+            document.getElementById('lastUpdate').textContent = coinsData.timestamp;
+        }
+        
+        function createCoinCard(symbol, data) {
+            const coinName = symbol.replace('USDT', '');
+            const cardClass = data.signal === 'BUY' ? 'buy-signal' : 
+                             (data.signal === 'SELL' ? 'sell-signal' : 
+                             (data.in_position ? 'in-position' : ''));
+            
+            const signalClass = data.signal === 'BUY' ? 'buy' : 
+                               (data.signal.includes('SELL') ? 'sell' : 'wait');
+            
+            const signalText = data.signal === 'BUY' ? '🟢 BUY' : 
+                              (data.signal.includes('SELL') ? '🔴 SELL' : '⚪ ATTESA');
+            
+            const scoreColor = data.buy_score_pct >= 75 ? '#00b894' : 
+                              (data.buy_score_pct >= 50 ? '#fdcb6e' : '#ff6b6b');
+            
+            return `
+                <div class="coin-card ${cardClass}">
+                    <div class="coin-header">
+                        <div>
+                            <div class="coin-name">${coinName}</div>
+                            <div class="coin-price">$${data.price?.toLocaleString() || '--'}</div>
+                        </div>
+                        <span class="signal-badge ${signalClass}">${signalText}</span>
+                    </div>
+                    
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${data.buy_score_pct}%; background: ${scoreColor};">
+                            ${data.buy_score}/4 (${data.buy_score_pct}%)
+                        </div>
+                    </div>
+                    
+                    <div class="indicators">
+                        <div class="indicator">
+                            <div class="indicator-label">RSI</div>
+                            <div class="indicator-value" style="color: ${data.rsi < 40 ? '#00b894' : (data.rsi > 65 ? '#ff6b6b' : '#fdcb6e')}">${data.rsi}</div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">MACD</div>
+                            <div class="indicator-value" style="color: ${data.macd > 0 ? '#00b894' : '#ff6b6b'}">${data.macd?.toFixed(1)}</div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">EMA Trend</div>
+                            <div class="indicator-value" style="color: ${data.ema_short > data.ema_long ? '#00b894' : '#ff6b6b'}">
+                                ${data.ema_short > data.ema_long ? '📈 Bullish' : '📉 Bearish'}
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">Volume</div>
+                            <div class="indicator-value">${data.volume_spike ? '🔥 Spike!' : '➡️ Normale'}</div>
+                        </div>
+                    </div>
+                    
+                    ${data.in_position ? `
+                        <div class="position-info">
+                            <div style="font-weight: 600; margin-bottom: 8px;">📍 Posizione Aperta</div>
+                            <div class="position-row">
+                                <span>Entry:</span>
+                                <span>$${data.entry_price?.toLocaleString()}</span>
+                            </div>
+                            <div class="position-row">
+                                <span>Quantità:</span>
+                                <span>${data.quantity?.toFixed(6)} ${coinName}</span>
+                            </div>
+                            <div class="position-row">
+                                <span>PnL:</span>
+                                <span class="${data.unrealized_pnl >= 0 ? 'positive' : 'negative'}">
+                                    ${data.unrealized_pnl >= 0 ? '+' : ''}$${data.unrealized_pnl?.toFixed(4)}
+                                </span>
+                            </div>
+                            <div class="position-row">
+                                <span>TP:</span>
+                                <span class="positive">$${data.tp_price?.toLocaleString()}</span>
+                            </div>
+                            <div class="position-row">
+                                <span>SL:</span>
+                                <span class="negative">$${data.sl_price?.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div style="margin-top: 10px; font-size: 0.8em; color: #8892b0;">
+                        Trade: ${data.total_trades} | Win: ${data.win_rate}% | PnL: 
+                        <span class="${data.total_pnl >= 0 ? 'positive' : 'negative'}">
+                            ${data.total_pnl >= 0 ? '+' : ''}$${data.total_pnl?.toFixed(4)}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function sortCoins(by) {
+            document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            updateUI();
+        }
+        
+        fetchData();
+        setInterval(fetchData, 15000); // Aggiorna ogni 15 secondi
+    </script>
+</body>
+</html>

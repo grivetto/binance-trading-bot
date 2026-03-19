@@ -137,3 +137,35 @@ MIT License
 ## 👨‍💻 Autore
 
 **grivetto** - [GitHub](https://github.com/grivetto)
+
+---
+
+## 📊 Grid Trading Bot
+
+Una strategia alternativa: Spot Grid Trading.
+
+### Come funziona:
+1. Definisci un range di prezzo (es. $68,000 - $75,000)
+2. Dividi in N livelli (es. 10 griglie)
+3. Il bot piazza ordini BUY sotto il prezzo corrente
+4. Il bot piazza ordini SELL sopra il prezzo corrente
+5. Quando un BUY esegue → piazza SELL al livello sopra
+6. Quando un SELL esegue → piazza BUY al livello sotto
+
+### Avvio:
+```bash
+# Modifica i parametri in binance_grid_bot.py
+LOWER_BOUND = 68000.0    # Prezzo minimo
+UPPER_BOUND = 75000.0    # Prezzo massimo
+GRID_LEVELS = 10         # Numero di griglie
+
+# Avvia
+python3 binance_grid_bot.py
+```
+
+### Dashboard Grid:
+```bash
+python3 dashboard_server.py
+# Apri: http://localhost:8080/grid
+```
+

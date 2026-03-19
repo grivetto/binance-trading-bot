@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Grid Trading Bot</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a15 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        header h1 { font-size: 2em; background: linear-gradient(90deg, #00b894, #0984e3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: #8892b0; margin-top: 5px; }
+        
+        .price-hero {
+            text-align: center;
+            padding: 25px;
+            background: rgba(0,184,148,0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(0,184,148,0.2);
+            margin-bottom: 20px;
+        }
+        .price-hero .price { font-size: 3em; font-weight: 700; color: #00cec9; }
+        .price-hero .change { font-size: 1.1em; margin-top: 5px; }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+        .summary-card .value { font-size: 1.8em; font-weight: 700; }
+        .summary-card .label { font-size: 0.75em; color: #8892b0; margin-top: 5px; }
+        .positive { color: #00b894; }
+        .negative { color: #ff6b6b; }
+        .warning { color: #fdcb6e; }
+        
+        .grid-visual {
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .grid-visual h3 { color: #8892b0; margin-bottom: 15px; font-size: 0.9em; text-transform: uppercase; }
+        
+        .grid-container {
+            position: relative;
+            height: 400px;
+            background: linear-gradient(to bottom, rgba(255,107,107,0.1), rgba(0,184,148,0.1));
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .grid-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .grid-line::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+        }
+        .grid-line.buy-zone::before { background: rgba(0,184,148,0.4); }
+        .grid-line.sell-zone::before { background: rgba(255,107,107,0.4); }
+        .grid-line.current::before { background: #fdcb6e; height: 3px; }
+        .grid-line.has-order::after {
+            content: '●';
+            position: absolute;
+            right: 10px;
+            font-size: 1.2em;
+        }
+        .grid-line.buy-order::after { color: #00b894; }
+        .grid-line.sell-order::after { color: #ff6b6b; }
+        .grid-line.filled::after { content: '✓'; }
+        
+        .grid-label {
+            position: absolute;
+            left: 50px;
+            font-size: 0.8em;
+            background: rgba(0,0,0,0.5);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        .current-price-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #fdcb6e;
+            z-index: 10;
+        }
+        .current-price-label {
+            position: absolute;
+            right: 10px;
+            background: #fdcb6e;
+            color: #000;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+        
+        .bounds {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.85em;
+        }
+        .bounds .lower { color: #ff6b6b; }
+        .bounds .upper { color: #00b894; }
+        
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .orders-table th {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            text-align: left;
+            font-size: 0.8em;
+            color: #8892b0;
+            text-transform: uppercase;
+        }
+        .orders-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .orders-table tr.buy-row { background: rgba(0,184,148,0.1); }
+        .orders-table tr.sell-row { background: rgba(255,107,107,0.1); }
+        
+        .direction-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        .direction-badge.buy { background: #00b894; color: #fff; }
+        .direction-badge.sell { background: #ff6b6b; color: #fff; }
+        
+        .fills-history {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .fills-history h3 { color: #8892b0; margin-bottom: 10px; font-size: 0.9em; }
+        .fill-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 0.85em;
+        }
+        
+        .profit-chart {
+            display: flex;
+            gap: 2px;
+            height: 60px;
+            align-items: flex-end;
+            margin-top: 10px;
+        }
+        .profit-bar {
+            flex: 1;
+            min-height: 5px;
+            border-radius: 2px 2px 0 0;
+        }
+        .profit-bar.positive { background: #00b894; }
+        .profit-bar.negative { background: #ff6b6b; }
+        
+        .refresh-bar {
+            text-align: center;
+            color: #8892b0;
+            font-size: 0.8em;
+            padding: 15px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 10px;
+        }
+        
+        .dot { animation: pulse 1.5s infinite; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #00b894; margin-right: 5px; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        @media (max-width: 768px) {
+            .price-hero .price { font-size: 2em; }
+            .grid-container { height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Grid Trading Bot</h1>
+            <div class="subtitle">Spot Grid • <span id="symbol">BTCUSDT</span> • <span id="mode">LIVE</span></div>
+        </header>
+        
+        <div class="price-hero">
+            <div class="price" id="currentPrice">$0</div>
+            <div class="change" id="priceChange">--</div>
+        </div>
+        
+        <div class="summary-grid" id="summaryGrid"></div>
+        
+        <div class="grid-visual">
+            <h3>📊 Visualizzazione Griglia</h3>
+            <div class="grid-container" id="gridContainer"></div>
+            <div class="bounds">
+                <span class="lower">Lower Bound: $<span id="lowerBound">0</span></span>
+                <span class="upper">Upper Bound: $<span id="upperBound">0</span></span>
+            </div>
+        </div>
+        
+        <div class="grid-visual">
+            <h3>📗 Ordini Attivi</h3>
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Livello</th>
+                        <th>Direzione</th>
+                        <th>Prezzo</th>
+                        <th>Quantità</th>
+                        <th>Valore</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersBody"></tbody>
+            </table>
+        </div>
+        
+        <div class="grid-visual">
+            <h3>📜 Storico Esecuzioni</h3>
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Ora</th>
+                        <th>Direzione</th>
+                        <th>Livello</th>
+                        <th>Prezzo</th>
+                        <th>Quantità</th>
+                    </tr>
+                </thead>
+                <tbody id="fillsBody"></tbody>
+            </table>
+        </div>
+        
+        <div class="grid-visual">
+            <h3>💰 Bilancio</h3>
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="value info" id="usdtBalance">$0</div>
+                    <div class="label">USDT Disponibile</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value" id="btcBalance">0</div>
+                    <div class="label">BTC</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value" id="btcValue">$0</div>
+                    <div class="label">Valore BTC (USDT)</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value" id="totalValue">$0</div>
+                    <div class="label">Valore Totale</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="refresh-bar">
+            <span class="dot"></span> Live | Aggiornamento: 15s | Ultimo: <span id="lastUpdate">--</span>
+        </div>
+    </div>
+    
+    <script>
+        let data = {};
+        
+        async function fetchData() {
+            try {
+                const res = await fetch('/grid_status.json?' + Date.now());
+                if (res.ok) {
+                    data = await res.json();
+                    updateUI();
+                }
+            } catch (e) { console.error('Errore:', e); }
+        }
+        
+        function updateUI() {
+            if (!data.grid) return;
+            
+            // Header
+            document.getElementById('symbol').textContent = data.symbol;
+            document.getElementById('mode').textContent = data.mode;
+            
+            // Price
+            document.getElementById('currentPrice').textContent = '$' + data.current_price?.toLocaleString();
+            const change = data.price_change_pct || 0;
+            document.getElementById('priceChange').innerHTML = 
+                `<span class="${change >= 0 ? 'positive' : 'negative'}">${change >= 0 ? '▲' : '▼'} ${Math.abs(change).toFixed(3)}%</span>`;
+            
+            // Summary
+            document.getElementById('summaryGrid').innerHTML = `
+                <div class="summary-card">
+                    <div class="value ${data.status === 'RUNNING' ? 'positive' : 'negative'}">${data.status}</div>
+                    <div class="label">Stato</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value info">${data.active_orders || 0}</div>
+                    <div class="label">Ordini Attivi</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value">${data.total_trades || 0}</div>
+                    <div class="label">Trade Totali</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value">${data.filled_buys || 0}</div>
+                    <div class="label">Buys Eseguiti</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value">${data.filled_sells || 0}</div>
+                    <div class="label">Sells Eseguiti</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value ${data.total_profit >= 0 ? 'positive' : 'negative'}">${data.total_profit >= 0 ? '+' : ''}$${(data.total_profit || 0).toFixed(4)}</div>
+                    <div class="label">Profitto Lordo</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value negative">$${(data.total_fees || 0).toFixed(4)}</div>
+                    <div class="label">Fee Pagate</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value ${data.net_profit >= 0 ? 'positive' : 'negative'}">${data.net_profit >= 0 ? '+' : ''}$${(data.net_profit || 0).toFixed(4)}</div>
+                    <div class="label">Profitto Netto</div>
+                </div>
+            `;
+            
+            // Grid bounds
+            document.getElementById('lowerBound').textContent = data.grid.lower_bound?.toLocaleString();
+            document.getElementById('upperBound').textContent = data.grid.upper_bound?.toLocaleString();
+            
+            // Grid visualization
+            renderGrid();
+            
+            // Orders table
+            renderOrders();
+            
+            // Fills table
+            renderFills();
+            
+            // Balance
+            if (data.balance) {
+                document.getElementById('usdtBalance').textContent = '$' + data.balance.usdt?.toLocaleString();
+                document.getElementById('btcBalance').textContent = data.balance.btc?.toFixed(6);
+                document.getElementById('btcValue').textContent = '$' + data.balance.btc_value_usdt?.toLocaleString();
+                document.getElementById('totalValue').textContent = '$' + data.balance.total_usdt?.toLocaleString();
+            }
+            
+            document.getElementById('lastUpdate').textContent = data.timestamp;
+        }
+        
+        function renderGrid() {
+            const container = document.getElementById('gridContainer');
+            const levels = data.levels || [];
+            const gridPrices = data.grid.grid_prices || [];
+            const currentPrice = data.current_price;
+            const lower = data.grid.lower_bound;
+            const upper = data.grid.upper_bound;
+            const range = upper - lower;
+            
+            let html = '';
+            
+            // Current price line
+            const currentPos = ((currentPrice - lower) / range) * 100;
+            html += `
+                <div class="current-price-line" style="bottom: ${currentPos}%">
+                    <span class="current-price-label">$${currentPrice?.toLocaleString()}</span>
+                </div>
+            `;
+            
+            // Grid lines
+            levels.forEach((level, i) => {
+                const pos = ((level.price - lower) / range) * 100;
+                const isCurrent = level.is_current;
+                const isBuy = level.price < currentPrice;
+                const hasOrder = level.has_order;
+                const filled = level.filled;
+                
+                let classes = 'grid-line';
+                if (isCurrent) classes += ' current';
+                else if (isBuy) classes += ' buy-zone';
+                else classes += ' sell-zone';
+                
+                if (hasOrder) classes += ' has-order';
+                if (hasOrder && isBuy) classes += ' buy-order';
+                else if (hasOrder && !isBuy) classes += ' sell-order';
+                if (filled) classes += ' filled';
+                
+                html += `
+                    <div class="${classes}" style="bottom: ${pos}%">
+                        <span class="grid-label">$${level.price?.toLocaleString()} ${hasOrder ? (isBuy ? '📗' : '📕') : ''}</span>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function renderOrders() {
+            const body = document.getElementById('ordersBody');
+            const orders = data.orders || [];
+            
+            if (orders.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #8892b0;">Nessun ordine attivo</td></tr>';
+                return;
+            }
+            
+            body.innerHTML = orders.map(o => `
+                <tr class="${o.direction.toLowerCase()}-row">
+                    <td>#${o.level}</td>
+                    <td><span class="direction-badge ${o.direction.toLowerCase()}">${o.direction}</span></td>
+                    <td>$${o.price?.toLocaleString()}</td>
+                    <td>${o.quantity?.toFixed(6)}</td>
+                    <td>$${(o.price * o.quantity).toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+        
+        function renderFills() {
+            const body = document.getElementById('fillsBody');
+            const fills = data.fills || [];
+            
+            if (fills.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #8892b0;">Nessuna esecuzione ancora</td></tr>';
+                return;
+            }
+            
+            body.innerHTML = fills.slice(0, 10).map(f => `
+                <tr class="${f.direction.toLowerCase()}-row">
+                    <td>${f.time?.split('T')[1]?.substring(0, 8) || '-'}</td>
+                    <td><span class="direction-badge ${f.direction.toLowerCase()}">${f.direction}</span></td>
+                    <td>#${f.grid_level}</td>
+                    <td>$${f.price?.toLocaleString()}</td>
+                    <td>${f.quantity?.toFixed(6)}</td>
+                </tr>
+            `).join('');
+        }
+        
+        fetchData();
+        setInterval(fetchData, 10000);
+    </script>
+</body>
+</html>
